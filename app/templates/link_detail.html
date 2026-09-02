@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ link.short_code }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ link.short_code }}</h1>
+    <form method="post" action="/dashboard/{{ link.id }}/delete"
+          onsubmit="return confirm('Delete this link and all its click data?');">
+        <button type="submit" class="button danger">Delete</button>
+    </form>
+</div>
+
+<div class="card">
+    <p><strong>Short URL:</strong> <code>{{ short_url }}</code></p>
+    <p><strong>Destination:</strong> <a href="{{ link.long_url }}" target="_blank">{{ link.long_url }}</a></p>
+    <p><strong>Final URL (with UTM):</strong> <code class="wrap">{{ link.final_url }}</code></p>
+    <p>
+        <strong>UTM:</strong>
+        source={{ link.utm_source }} &middot;
+        medium={{ link.utm_medium }} &middot;
+        campaign={{ link.utm_campaign }}
+        {% if link.utm_term %} &middot; term={{ link.utm_term }}{% endif %}
+        {% if link.utm_content %} &middot; content={{ link.utm_content }}{% endif %}
+    </p>
+    <p><strong>Total clicks:</strong> {{ clicks|length }}</p>
+</div>
+
+<h2>Click Log</h2>
+{% if not clicks %}
+<p class="empty">No clicks recorded yet.</p>
+{% else %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Time</th>
+            <th>IP</th>
+            <th>Location</th>
+            <th>Browser</th>
+            <th>OS</th>
+            <th>Device</th>
+            <th>Referrer</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clicks %}
+        <tr>
+            <td>{{ c.clicked_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+            <td>{{ c.ip_address or "-" }}</td>
+            <td>{{ c.city or "-" }}{% if c.country %}, {{ c.country }}{% endif %}</td>
+            <td>{{ c.browser or "-" }}</td>
+            <td>{{ c.os or "-" }}</td>
+            <td>{{ c.device_type or "-" }}</td>
+            <td class="truncate">{{ c.referrer or "direct" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

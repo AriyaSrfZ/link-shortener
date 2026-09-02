@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}New Link{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>Campaign & Link Info</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="post" action="/dashboard/new">
+        <div class="form-grid">
+            <div class="form-col">
+                <h2>Required fields</h2>
+                <label>Destination URL *
+                    <input type="url" name="long_url" placeholder="https://example.com/product"
+                           value="{{ form.long_url or '' }}" required>
+                </label>
+                <label>utm_source *
+                    <input type="text" name="utm_source" placeholder="e.g. newsletter"
+                           value="{{ form.utm_source or '' }}" required>
+                </label>
+                <label>utm_medium *
+                    <input type="text" name="utm_medium" placeholder="e.g. sms"
+                           value="{{ form.utm_medium or '' }}" required>
+                </label>
+                <label>utm_campaign *
+                    <input type="text" name="utm_campaign" placeholder="e.g. summer_sale"
+                           value="{{ form.utm_campaign or '' }}" required>
+                </label>
+            </div>
+            <div class="form-col">
+                <h2>Optional fields</h2>
+                <label>utm_term
+                    <input type="text" name="utm_term" placeholder="keyword"
+                           value="{{ form.utm_term or '' }}">
+                </label>
+                <label>utm_content
+                    <input type="text" name="utm_content" placeholder="ad variant"
+                           value="{{ form.utm_content or '' }}">
+                </label>
+                <label>Custom short code
+                    <input type="text" name="custom_code" placeholder="leave blank to auto-generate"
+                           value="{{ form.custom_code or '' }}">
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="button wide">Create Short Link</button>
+    </form>
+</div>
+{% endblock %}

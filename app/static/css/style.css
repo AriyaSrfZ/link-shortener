@@ -1,0 +1,56 @@
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f4f5f7;
+    color: #1f2430;
+}
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1f2430;
+    padding: 14px 24px;
+}
+.topbar .brand { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.1rem; }
+.topbar nav a { color: #cfd3dc; text-decoration: none; margin-left: 20px; font-size: 0.9rem; }
+.topbar nav a:hover { color: #fff; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+.card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 24px; }
+.card.narrow { max-width: 380px; margin: 60px auto; }
+
+h1 { font-size: 1.4rem; margin: 0 0 12px; }
+h2 { font-size: 1rem; color: #555; margin: 0 0 12px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+label { display: block; margin-bottom: 14px; font-size: 0.85rem; font-weight: 600; color: #444; }
+input {
+    width: 100%; padding: 10px 12px; margin-top: 6px;
+    border: 1px solid #d7d9e0; border-radius: 6px; font-size: 0.95rem;
+}
+input:focus { outline: none; border-color: #ff5a36; }
+
+.button {
+    display: inline-block; background: #ff5a36; color: #fff; border: none;
+    padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;
+    text-decoration: none; font-size: 0.9rem;
+}
+.button.wide { width: 100%; margin-top: 8px; padding: 13px; }
+.button.danger { background: #c0392b; }
+
+.data-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; }
+.data-table th, .data-table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #eef0f3; font-size: 0.88rem; }
+.data-table th { background: #fafbfc; color: #666; font-weight: 600; }
+.clickable-row { cursor: pointer; }
+.clickable-row:hover { background: #fff8f5; }
+
+.truncate { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+code { background: #f0f1f4; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+code.wrap { display: block; padding: 10px; white-space: pre-wrap; word-break: break-all; }
+
+.error { color: #c0392b; font-size: 0.9rem; }
+.empty { color: #888; }

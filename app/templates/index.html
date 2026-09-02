@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Links{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Your Links</h1>
+    <a class="button" href="/dashboard/new">+ New Link</a>
+</div>
+
+{% if not rows %}
+<p class="empty">No links yet. Create your first one.</p>
+{% else %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Short URL</th>
+            <th>Destination</th>
+            <th>Campaign</th>
+            <th>Clicks</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr onclick="window.location='/dashboard/{{ row.link.id }}'" class="clickable-row">
+            <td><code>{{ row.short_url }}</code></td>
+            <td class="truncate">{{ row.link.long_url }}</td>
+            <td>{{ row.link.utm_campaign }}</td>
+            <td>{{ row.click_count }}</td>
+            <td>{{ row.link.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}
