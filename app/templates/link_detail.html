@@ -24,6 +24,47 @@
     <p><strong>Total clicks:</strong> {{ clicks|length }}</p>
 </div>
 
+{% if clicks %}
+<div class="analytics-grid">
+    <div class="card">
+        <h2>Clicks, last 14 days</h2>
+        <div class="bar-chart">
+            {% set max_count = (daily | map(attribute="count") | max) or 1 %}
+            {% for d in daily %}
+            <div class="bar-col" title="{{ d.day }}: {{ d.count }} clicks">
+                <div class="bar" style="height: {{ (d.count / max_count * 100) if max_count else 0 }}%"></div>
+                <span class="bar-label">{{ d.day[5:] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card">
+        <h2>Top referrers</h2>
+        <ul class="stat-list">
+            {% for r in referrers %}
+            <li><span class="truncate">{{ r.referrer }}</span><strong>{{ r.count }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Devices</h2>
+        <ul class="stat-list">
+            {% for d in devices %}
+            <li><span>{{ d.device_type }}</span><strong>{{ d.count }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Top countries</h2>
+        <ul class="stat-list">
+            {% for c in countries %}
+            <li><span>{{ c.country }}</span><strong>{{ c.count }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
 <h2>Click Log</h2>
 {% if not clicks %}
 <p class="empty">No clicks recorded yet.</p>

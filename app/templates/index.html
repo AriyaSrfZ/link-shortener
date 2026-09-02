@@ -6,9 +6,66 @@
     <a class="button" href="/dashboard/new">+ New Link</a>
 </div>
 
+<div class="stat-cards">
+    <div class="stat-card">
+        <span class="stat-value">{{ summary.total }}</span>
+        <span class="stat-label">Total clicks</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ summary.last_24h }}</span>
+        <span class="stat-label">Last 24 hours</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ rows|length }}</span>
+        <span class="stat-label">Active links</span>
+    </div>
+</div>
+
+{% if summary.total > 0 %}
+<div class="analytics-grid">
+    <div class="card">
+        <h2>Clicks, last 14 days</h2>
+        <div class="bar-chart">
+            {% set max_count = (daily | map(attribute="count") | max) or 1 %}
+            {% for d in daily %}
+            <div class="bar-col" title="{{ d.day }}: {{ d.count }} clicks">
+                <div class="bar" style="height: {{ (d.count / max_count * 100) if max_count else 0 }}%"></div>
+                <span class="bar-label">{{ d.day[5:] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card">
+        <h2>Top referrers</h2>
+        <ul class="stat-list">
+            {% for r in referrers %}
+            <li><span class="truncate">{{ r.referrer }}</span><strong>{{ r.count }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Devices</h2>
+        <ul class="stat-list">
+            {% for d in devices %}
+            <li><span>{{ d.device_type }}</span><strong>{{ d.count }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Top countries</h2>
+        <ul class="stat-list">
+            {% for c in countries %}
+            <li><span>{{ c.country }}</span><strong>{{ c.count }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
 {% if not rows %}
 <p class="empty">No links yet. Create your first one.</p>
 {% else %}
+<h2>All Links</h2>
 <table class="data-table">
     <thead>
         <tr>

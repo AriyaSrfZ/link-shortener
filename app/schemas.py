@@ -38,8 +38,7 @@ class LinkOut(BaseModel):
     created_at: datetime
     click_count: int = 0
 
-    class Config:
-        from_attributes = True
+model_config = {"from_attributes": True}
 
 
 class ClickOut(BaseModel):
@@ -53,5 +52,4 @@ class ClickOut(BaseModel):
     country: Optional[str] = None
     city: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+model_config = {"from_attributes": True}

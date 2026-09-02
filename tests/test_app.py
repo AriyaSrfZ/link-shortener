@@ -17,13 +17,6 @@ from sqlalchemy.pool import StaticPool
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Point at an in-memory DB before importing the app, so app.database picks
-# it up via the same engine-creation path as production.
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ["SECRET_KEY"] = "test-secret-key"
-os.environ["ADMIN_USERNAME"] = "admin"
-os.environ["ADMIN_PASSWORD"] = "testpass"
-
 from app.main import app  # noqa: E402
 from app.database import Base, engine, get_db, SessionLocal  # noqa: E402
 

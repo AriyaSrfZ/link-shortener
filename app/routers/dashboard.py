@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.config import settings
-from app import crud
+from app import crud, analytics
 from app.routers.auth import require_login_ui
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -33,8 +33,22 @@ def dashboard_home(
         }
         for link in links
     ]
+    summary = analytics.total_clicks_summary(db)
+    daily = analytics.clicks_per_day(db, days=14)
+    referrers = analytics.top_referrers(db)
+    devices = analytics.device_breakdown(db)
+    countries = analytics.top_countries(db)
     return templates.TemplateResponse(
-        "index.html", {"request": request, "rows": rows}
+        "index.html",
+        {
+            "request": request,
+            "rows": rows,
+            "summary": summary,
+            "daily": daily,
+            "referrers": referrers,
+            "devices": devices,
+            "countries": countries,
+        },
     )
 
 
@@ -104,6 +118,10 @@ def link_detail(
     if not link:
         return RedirectResponse("/dashboard", status_code=303)
     clicks = sorted(link.clicks, key=lambda c: c.clicked_at, reverse=True)
+    daily = analytics.clicks_per_day(db, link_id=link_id, days=14)
+    referrers = analytics.top_referrers(db, link_id=link_id)
+    devices = analytics.device_breakdown(db, link_id=link_id)
+    countries = analytics.top_countries(db, link_id=link_id)
     return templates.TemplateResponse(
         "link_detail.html",
         {
@@ -111,6 +129,10 @@ def link_detail(
             "link": link,
             "short_url": f"{settings.base_url}/r/{link.short_code}",
             "clicks": clicks,
+            "daily": daily,
+            "referrers": referrers,
+            "devices": devices,
+            "countries": countries,
         },
     )
 

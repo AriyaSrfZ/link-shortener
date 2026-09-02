@@ -5,7 +5,7 @@ Link:  one row per shortened URL, holds the destination and UTM parameters.
 Click: one row per redirect hit against a Link, holds the backtrace data.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Column, Integer, String, DateTime, ForeignKey, Text, Boolean
@@ -32,7 +32,7 @@ class Link(Base):
     utm_content = Column(String(255), nullable=True)
 
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     clicks = relationship(
         "Click", back_populates="link", cascade="all, delete-orphan"
@@ -66,7 +66,7 @@ class Click(Base):
     id = Column(Integer, primary_key=True, index=True)
     link_id = Column(Integer, ForeignKey("links.id"), nullable=False)
 
-    clicked_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    clicked_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     ip_address = Column(String(64), nullable=True)
     referrer = Column(Text, nullable=True)
     user_agent_raw = Column(Text, nullable=True)
