@@ -11,9 +11,10 @@ If you already have the folder locally, open it in VS Code:
 code link-shortener
 ```
 
-If pushing to GitHub first (see DEPLOYMENT.md), clone it back down with:
+If cloning from your GitHub repo (see docs/GITHUB_SETUP.md for the
+initial upload), pull it down with:
 ```
-git clone https://github.com/<your-username>/link-shortener.git
+git clone https://github.com/AriyaSrfZ/link-shortener.git
 cd link-shortener
 ```
 

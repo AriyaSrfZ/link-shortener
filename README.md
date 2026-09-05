@@ -4,6 +4,8 @@ A self-hosted link shortener with UTM campaign builder and full click
 backtrace logging (IP, geolocation, browser, OS, device type, referrer),
 plus an analytics dashboard.
 
+Built by Ariya Sarrafzadeh ([github.com/AriyaSrfZ](https://github.com/AriyaSrfZ)).
+
 ## Features
 - Shorten any URL with auto-generated or custom short codes
 - UTM campaign builder (source, medium, campaign, term, content) matching
@@ -27,7 +29,8 @@ uvicorn app.main:app --reload
 Visit http://127.0.0.1:8000/dashboard
 
 Full instructions: [docs/SETUP.md](docs/SETUP.md)
-Pushing to GitHub and deploying to a server: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+Uploading this repo to GitHub: [docs/GITHUB_SETUP.md](docs/GITHUB_SETUP.md)
+Deploying to a VPS with a domain: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ## Tech stack
 - **Backend:** FastAPI + SQLAlchemy
@@ -49,3 +52,6 @@ Pushing to GitHub and deploying to a server: [docs/DEPLOYMENT.md](docs/DEPLOYMEN
 ## License
 Personal/internal use project — add a license here if you plan to share
 or open-source it.
+
+## Author
+Ariya Sarrafzadeh — [github.com/AriyaSrfZ](https://github.com/AriyaSrfZ)
