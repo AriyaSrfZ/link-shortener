@@ -10,3 +10,7 @@ data/*.sqlite3
 .DS_Store
 .vscode/
 *.log
+*.db
+*.sqlite3
+nohup.out
+*.deb
