@@ -1,3 +1,8 @@
+"""
+App entrypoint. Run locally with:
+    uvicorn app.main:app --reload
+"""
+
 from fastapi import FastAPI, Request
 from fastapi.openapi.docs import get_redoc_html
 from fastapi.responses import RedirectResponse
@@ -12,6 +17,11 @@ from app.routers.auth import NotLoggedInUI
 # Creates data/app.db and all tables on first run if they don't exist yet.
 Base.metadata.create_all(bind=engine)
 
+# redoc_url=None disables FastAPI's built-in /redoc route, since its default
+# jsdelivr bundle (redoc@next) 404s. The route below replaces it, serving the
+# redoc.standalone.js bundle from app/static/js/ instead of an external CDN -
+# avoids depending on jsdelivr/unpkg reachability, which is not guaranteed
+# from every network.
 app = FastAPI(title="Link Shortener", version="0.6.0", redoc_url=None)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
@@ -44,5 +54,6 @@ def health():
 
 app.include_router(auth.router)
 app.include_router(links.router)
+app.include_router(links.stats_router)
 app.include_router(dashboard.router)
 app.include_router(redirect.router)

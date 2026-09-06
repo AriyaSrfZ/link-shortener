@@ -29,7 +29,9 @@ uvicorn app.main:app --reload
 Visit http://127.0.0.1:8000/dashboard
 
 Full instructions: [docs/SETUP.md](docs/SETUP.md)
+API reference for integrating into another app: [docs/API.md](docs/API.md)
 Uploading this repo to GitHub: [docs/GITHUB_SETUP.md](docs/GITHUB_SETUP.md)
+Running it on WSL with a real domain (Cloudflare Tunnel): [docs/WSL_CLOUDFLARE_SETUP.md](docs/WSL_CLOUDFLARE_SETUP.md)
 Deploying to a VPS with a domain: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ## Tech stack
