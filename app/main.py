@@ -54,5 +54,6 @@ def health():
 
 app.include_router(auth.router)
 app.include_router(links.router)
+app.include_router(links.stats_router)
 app.include_router(dashboard.router)
 app.include_router(redirect.router)

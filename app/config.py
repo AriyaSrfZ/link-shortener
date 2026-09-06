@@ -19,6 +19,7 @@ class Settings:
     admin_username: str = os.getenv("ADMIN_USERNAME", "admin")
     admin_password: str = os.getenv("ADMIN_PASSWORD", "admin")
     shortcode_length: int = int(os.getenv("SHORTCODE_LENGTH", "6"))
+    api_key: str = os.getenv("API_KEY", "")
 
 
 settings = Settings()
