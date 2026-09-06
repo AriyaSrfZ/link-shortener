@@ -18,8 +18,10 @@ from app.routers.auth import NotLoggedInUI
 Base.metadata.create_all(bind=engine)
 
 # redoc_url=None disables FastAPI's built-in /redoc route, since its default
-# jsdelivr bundle (redoc@next) 404s. The route below replaces it with a
-# working CDN URL (unpkg, pinned to redoc@2) instead.
+# jsdelivr bundle (redoc@next) 404s. The route below replaces it, serving the
+# redoc.standalone.js bundle from app/static/js/ instead of an external CDN -
+# avoids depending on jsdelivr/unpkg reachability, which is not guaranteed
+# from every network.
 app = FastAPI(title="Link Shortener", version="0.6.0", redoc_url=None)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
@@ -31,7 +33,7 @@ async def redoc_html():
     return get_redoc_html(
         openapi_url=app.openapi_url,
         title=f"{app.title} - ReDoc",
-        redoc_js_url="https://unpkg.com/redoc@2/bundles/redoc.standalone.js",
+        redoc_js_url="/static/js/redoc.standalone.js",
     )
 
 
