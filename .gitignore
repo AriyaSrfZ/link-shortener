@@ -7,6 +7,10 @@ env/
 .env
 data/*.db
 data/*.sqlite3
+*.db
+*.sqlite3
 .DS_Store
 .vscode/
 *.log
+nohup.out
+*.deb
