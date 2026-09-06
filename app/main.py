@@ -22,7 +22,7 @@ Base.metadata.create_all(bind=engine)
 # redoc.standalone.js bundle from app/static/js/ instead of an external CDN -
 # avoids depending on jsdelivr/unpkg reachability, which is not guaranteed
 # from every network.
-app = FastAPI(title="Link Shortener", version="0.6.0", redoc_url=None)
+app = FastAPI(title="Link Shortener", version="0.11.0", redoc_url=None)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
