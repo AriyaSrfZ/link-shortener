@@ -9,10 +9,13 @@
 <body>
     <header class="topbar">
         <a class="brand" href="/dashboard">Link Shortener</a>
-        {% if request.session.get("logged_in") %}
+        {% if request.session.get("user_id") %}
         <nav>
-            <a href="/dashboard">Links</a>
+            <a href="/dashboard">My Links</a>
             <a href="/dashboard/new">New Link</a>
+            {% if request.session.get("role") == "admin" %}
+            <a href="/dashboard/admin/users">Customers</a>
+            {% endif %}
             <a href="/logout">Logout ({{ request.session.get("username") }})</a>
         </nav>
         {% endif %}

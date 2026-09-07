@@ -19,6 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.main import app  # noqa: E402
 from app.database import Base, engine, get_db, SessionLocal  # noqa: E402
+from app.models import User  # noqa: E402
+from app.routers.auth import hash_password  # noqa: E402
 
 # Use a single shared in-memory connection for the whole test session,
 # since SQLite ":memory:" is per-connection otherwise.
@@ -30,6 +32,18 @@ test_engine = create_engine(
 TestSessionLocal = sessionmaker(bind=test_engine)
 Base.metadata.create_all(bind=test_engine)
 
+# Bootstrap an admin user directly, same as scripts/migrate_multi_tenant.py
+# does for a real install - login now checks the users table, not .env.
+with TestSessionLocal() as _db:
+    if not _db.query(User).filter(User.role == "admin").first():
+        _db.add(User(
+            username="admin",
+            password_hash=hash_password("testpass"),
+            role="admin",
+            is_active=True,
+        ))
+        _db.commit()
+
 
 def override_get_db():
     db = TestSessionLocal()
@@ -39,7 +53,20 @@ def override_get_db():
         db.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture(autouse=True)
+def _use_test_db():
+    """Applies this file's DB override only while this file's tests run,
+    then restores whatever was there before. Without this, whichever test
+    file pytest imports last would silently win for every test in the
+    whole run, since dependency_overrides is a single shared dict on the
+    one `app` object all test files import."""
+    previous = app.dependency_overrides.get(get_db)
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    if previous is not None:
+        app.dependency_overrides[get_db] = previous
+    else:
+        app.dependency_overrides.pop(get_db, None)
 
 
 @pytest.fixture()

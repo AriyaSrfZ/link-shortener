@@ -1,7 +1,10 @@
 """
 ORM models.
 
+User:  an admin or a customer account. Admin sees/manages everything;
+       a customer only ever sees links they own.
 Link:  one row per shortened URL, holds the destination and UTM parameters.
+       Owned by exactly one User.
 Click: one row per redirect hit against a Link, holds the backtrace data.
 """
 
@@ -15,12 +18,32 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(64), unique=True, index=True, nullable=False)
+    email = Column(String(255), unique=True, index=True, nullable=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), default="customer", nullable=False)  # "admin" or "customer"
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    links = relationship("Link", back_populates="owner", cascade="all, delete-orphan")
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == "admin"
+
+
 class Link(Base):
     __tablename__ = "links"
 
     id = Column(Integer, primary_key=True, index=True)
     short_code = Column(String(64), unique=True, index=True, nullable=False)
     long_url = Column(Text, nullable=False)
+
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
 
     # UTM parameters - required fields per the campaign builder
     utm_source = Column(String(255), nullable=False)
@@ -34,6 +57,7 @@ class Link(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
+    owner = relationship("User", back_populates="links")
     clicks = relationship(
         "Click", back_populates="link", cascade="all, delete-orphan"
     )

@@ -41,6 +41,19 @@ app.dependency_overrides[get_db] = override_get_db
 API_KEY_HEADER = {"X-API-Key": "test-api-key-123"}
 
 
+@pytest.fixture(autouse=True)
+def _use_test_db():
+    """See test_app.py for why this fixture (not a bare module-level
+    assignment) is required for correct test isolation."""
+    previous = app.dependency_overrides.get(get_db)
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    if previous is not None:
+        app.dependency_overrides[get_db] = previous
+    else:
+        app.dependency_overrides.pop(get_db, None)
+
+
 @pytest.fixture()
 def client():
     return TestClient(app)

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Manage Customers{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Customers</h1>
+</div>
+
+{% if not rows %}
+<p class="empty">No customer accounts yet. They'll show up here once someone signs up at /signup.</p>
+{% else %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Links</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.user.username }}</td>
+            <td>{{ row.user.email or "-" }}</td>
+            <td>{{ row.link_count }}</td>
+            <td>
+                <span class="badge {{ 'badge-active' if row.user.is_active else 'badge-inactive' }}">
+                    {{ "Active" if row.user.is_active else "Disabled" }}
+                </span>
+            </td>
+            <td>{{ row.user.created_at.strftime("%Y-%m-%d") }}</td>
+            <td class="row-actions">
+                <form method="post" action="/dashboard/admin/users/{{ row.user.id }}/toggle-active">
+                    <button type="submit" class="button-small">
+                        {{ "Disable" if row.user.is_active else "Enable" }}
+                    </button>
+                </form>
+                <form method="post" action="/dashboard/admin/users/{{ row.user.id }}/delete"
+                      onsubmit="return confirm('Delete this customer and all their links? This cannot be undone.');">
+                    <button type="submit" class="button-small danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

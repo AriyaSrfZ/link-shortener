@@ -1,6 +1,13 @@
 """
 Database operations (CRUD), separated from route handlers so route
 functions stay thin and this logic stays independently testable.
+
+Ownership model: every Link belongs to exactly one User (owner_id).
+Functions suffixed `_for_user` enforce that a customer only ever sees
+their own links - they return None/empty for anything they don't own,
+the same as if it didn't exist (never a 403, which would confirm the
+link's existence to someone probing IDs). Admins and API-key requests
+bypass this filtering entirely (see CurrentUser.is_admin).
 """
 
 from typing import Optional
@@ -8,12 +15,14 @@ from typing import Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import Link, Click
+from app.models import Link, Click, User
 from app.utils.shortcode import generate_code, is_reserved
 from app.utils.useragent import parse_user_agent
 from app.utils.geoip import lookup_country
 from app.config import settings
 
+
+# ---- Links -----------------------------------------------------------
 
 def code_exists(db: Session, code: str) -> bool:
     return db.query(Link).filter(Link.short_code == code).first() is not None
@@ -34,6 +43,7 @@ def create_link(
     utm_source: str,
     utm_medium: str,
     utm_campaign: str,
+    owner_id: Optional[int] = None,
     utm_term: Optional[str] = None,
     utm_content: Optional[str] = None,
     custom_code: Optional[str] = None,
@@ -50,6 +60,7 @@ def create_link(
     link = Link(
         short_code=code,
         long_url=str(long_url),
+        owner_id=owner_id,
         utm_source=utm_source,
         utm_medium=utm_medium,
         utm_campaign=utm_campaign,
@@ -70,6 +81,17 @@ def get_link_by_id(db: Session, link_id: int) -> Optional[Link]:
     return db.query(Link).filter(Link.id == link_id).first()
 
 
+def get_link_for_user(db: Session, link_id: int, current_user) -> Optional[Link]:
+    """Ownership-checked lookup. Returns None if the link doesn't exist
+    OR belongs to someone else - callers should treat both as 404."""
+    link = get_link_by_id(db, link_id)
+    if not link:
+        return None
+    if current_user.is_admin or link.owner_id == current_user.id:
+        return link
+    return None
+
+
 def list_links(db: Session, skip: int = 0, limit: int = 100):
     return (
         db.query(Link)
@@ -78,6 +100,14 @@ def list_links(db: Session, skip: int = 0, limit: int = 100):
         .limit(limit)
         .all()
     )
+
+
+def list_links_for_user(db: Session, current_user, skip: int = 0, limit: int = 100):
+    """Admin/API-key: all links. Customer: only their own."""
+    query = db.query(Link)
+    if not current_user.is_admin:
+        query = query.filter(Link.owner_id == current_user.id)
+    return query.order_by(Link.created_at.desc()).offset(skip).limit(limit).all()
 
 
 def count_clicks(db: Session, link_id: int) -> int:
@@ -127,5 +157,54 @@ def delete_link(db: Session, link_id: int) -> bool:
     if not link:
         return False
     db.delete(link)
+    db.commit()
+    return True
+
+
+def delete_link_for_user(db: Session, link_id: int, current_user) -> bool:
+    link = get_link_for_user(db, link_id, current_user)
+    if not link:
+        return False
+    db.delete(link)
+    db.commit()
+    return True
+
+
+# ---- Users (admin's customer-management panel) ------------------------
+
+def list_customers(db: Session, skip: int = 0, limit: int = 100):
+    return (
+        db.query(User)
+        .filter(User.role == "customer")
+        .order_by(User.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
+    return db.query(User).filter(User.id == user_id).first()
+
+
+def count_links_for_owner(db: Session, owner_id: int) -> int:
+    return db.query(func.count(Link.id)).filter(Link.owner_id == owner_id).scalar() or 0
+
+
+def set_user_active(db: Session, user_id: int, is_active: bool) -> Optional[User]:
+    user = get_user_by_id(db, user_id)
+    if user and user.role != "admin":
+        user.is_active = is_active
+        db.commit()
+        db.refresh(user)
+    return user
+
+
+def delete_user(db: Session, user_id: int) -> bool:
+    """Deletes a customer and all their links (cascade). Refuses to delete admins."""
+    user = get_user_by_id(db, user_id)
+    if not user or user.role == "admin":
+        return False
+    db.delete(user)
     db.commit()
     return True
