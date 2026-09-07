@@ -15,7 +15,7 @@ from typing import Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import Link, Click, User
+from app.models import Link, Click, User, QRCode
 from app.utils.shortcode import generate_code, is_reserved
 from app.utils.useragent import parse_user_agent
 from app.utils.geoip import lookup_country
@@ -172,6 +172,22 @@ def delete_link_for_user(db: Session, link_id: int, current_user) -> bool:
 
 # ---- Users (admin's customer-management panel) ------------------------
 
+def create_user(db: Session, username: str, password_hash: str, email: Optional[str] = None, role: str = "customer") -> User:
+    user = User(username=username, email=email, password_hash=password_hash, role=role, is_active=True)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def username_taken(db: Session, username: str) -> bool:
+    return db.query(User).filter(User.username == username).first() is not None
+
+
+def email_taken(db: Session, email: str) -> bool:
+    return db.query(User).filter(User.email == email).first() is not None
+
+
 def list_customers(db: Session, skip: int = 0, limit: int = 100):
     return (
         db.query(User)
@@ -206,5 +222,59 @@ def delete_user(db: Session, user_id: int) -> bool:
     if not user or user.role == "admin":
         return False
     db.delete(user)
+    db.commit()
+    return True
+
+
+# ---- QR codes -----------------------------------------------------------
+
+def create_qr_code(
+    db: Session,
+    owner_id: int,
+    qr_type: str,
+    link_id: Optional[int] = None,
+    payload: Optional[str] = None,
+    fg_color: str = "#000000",
+    bg_color: str = "#ffffff",
+) -> QRCode:
+    qr = QRCode(
+        owner_id=owner_id,
+        type=qr_type,
+        link_id=link_id,
+        payload=payload,
+        fg_color=fg_color,
+        bg_color=bg_color,
+    )
+    db.add(qr)
+    db.commit()
+    db.refresh(qr)
+    return qr
+
+
+def get_qr_code_by_id(db: Session, qr_id: int) -> Optional[QRCode]:
+    return db.query(QRCode).filter(QRCode.id == qr_id).first()
+
+
+def get_qr_code_for_user(db: Session, qr_id: int, current_user) -> Optional[QRCode]:
+    qr = get_qr_code_by_id(db, qr_id)
+    if not qr:
+        return None
+    if current_user.is_admin or qr.owner_id == current_user.id:
+        return qr
+    return None
+
+
+def list_qr_codes_for_user(db: Session, current_user, skip: int = 0, limit: int = 100):
+    query = db.query(QRCode)
+    if not current_user.is_admin:
+        query = query.filter(QRCode.owner_id == current_user.id)
+    return query.order_by(QRCode.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def delete_qr_code_for_user(db: Session, qr_id: int, current_user) -> bool:
+    qr = get_qr_code_for_user(db, qr_id, current_user)
+    if not qr:
+        return False
+    db.delete(qr)
     db.commit()
     return True

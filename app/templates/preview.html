@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Link Preview{% endblock %}
+{% block content %}
+<div class="card narrow">
+    <h1>Link Preview</h1>
+    {% if not link %}
+    <p class="error">No link found for code "{{ code }}".</p>
+    {% elif not link.is_active %}
+    <p class="error">This link has been disabled by its owner.</p>
+    {% else %}
+    <p class="muted">This short link points to:</p>
+    <p><code class="wrap">{{ link.final_url }}</code></p>
+    <p class="muted">Checking this page does not count as a visit.</p>
+    <a class="button wide" href="/r/{{ code }}">Continue to destination</a>
+    {% endif %}
+</div>
+{% endblock %}

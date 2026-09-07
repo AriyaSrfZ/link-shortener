@@ -11,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import auth, links, dashboard, redirect
+from app.routers import auth, links, dashboard, redirect, qrcodes, preview, users
 from app.routers.auth import NotLoggedInUI
 
 # Creates data/app.db and all tables on first run if they don't exist yet.
@@ -55,5 +55,8 @@ def health():
 app.include_router(auth.router)
 app.include_router(links.router)
 app.include_router(links.stats_router)
+app.include_router(qrcodes.router)
+app.include_router(preview.router)
+app.include_router(users.router)
 app.include_router(dashboard.router)
 app.include_router(redirect.router)

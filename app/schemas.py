@@ -96,3 +96,57 @@ class ClickOut(BaseModel):
     city: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+
+class QRCodeCreate(BaseModel):
+    type: str = Field(..., description="One of: link, text, wifi, vcard.", examples=["link"])
+    link_id: Optional[int] = Field(None, description="Required when type='link'. The ID of one of your existing links.")
+    text: Optional[str] = Field(None, description="Required when type='text'. The raw text to encode.")
+    wifi_ssid: Optional[str] = Field(None, description="Required when type='wifi'. The network name.")
+    wifi_password: Optional[str] = Field(None, description="Used when type='wifi' and wifi_security is not 'nopass'.")
+    wifi_security: Optional[str] = Field("WPA", description="Used when type='wifi'. One of: WPA, WEP, nopass.")
+    wifi_hidden: Optional[bool] = Field(False, description="Used when type='wifi'. Whether the network is hidden.")
+    vcard_name: Optional[str] = Field(None, description="Required when type='vcard'. Contact's full name.")
+    vcard_phone: Optional[str] = Field(None, description="Used when type='vcard'.")
+    vcard_email: Optional[str] = Field(None, description="Used when type='vcard'.")
+    vcard_org: Optional[str] = Field(None, description="Used when type='vcard'.")
+    fg_color: str = Field("#000000", description="Foreground color as a hex code, e.g. #000000. PNG only - SVG output ignores this.")
+    bg_color: str = Field("#ffffff", description="Background color as a hex code, e.g. #ffffff. PNG only - SVG output ignores this.")
+
+
+class QRCodeOut(BaseModel):
+    id: int
+    type: str
+    link_id: Optional[int] = None
+    fg_color: str
+    bg_color: str
+    created_at: datetime
+    image_url: str = Field(..., description="Fetch the rendered image (PNG) from this URL.")
+    svg_url: str = Field(..., description="Fetch the rendered image (SVG) from this URL.")
+
+    model_config = {"from_attributes": True}
+
+
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=64, description="Must be unique.")
+    email: Optional[str] = Field(None, description="Optional, must be unique if given.")
+    password: Optional[str] = Field(
+        None, min_length=8,
+        description="Omit to auto-generate a random password, returned once in the response. "
+                    "Use this when a panel/app is provisioning the account on a user's behalf.",
+    )
+    role: str = Field("customer", description="'customer' or 'admin'. Defaults to 'customer'.")
+
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+    email: Optional[str] = None
+    role: str
+    is_active: bool
+    created_at: datetime
+    generated_password: Optional[str] = Field(
+        None, description="Only present in the response right after creation, if no password was supplied. Not recoverable afterward - store it now."
+    )
+
+    model_config = {"from_attributes": True}

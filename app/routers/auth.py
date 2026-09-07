@@ -108,6 +108,15 @@ def require_admin_ui(current_user: CurrentUser = Depends(require_login_ui)) -> C
     return current_user
 
 
+def require_admin_or_api_key(current_user: CurrentUser = Depends(require_login)) -> CurrentUser:
+    """For admin-only JSON API routes (account provisioning). Raises 403 for
+    an authenticated customer session - this must not be callable by a
+    customer on their own account, only by an admin or a trusted API key."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    return current_user
+
+
 @router.get("/login")
 def login_page(request: Request):
     if request.session.get("user_id"):
