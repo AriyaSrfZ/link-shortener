@@ -49,11 +49,21 @@ Then edit `.env` and set:
 
 `.env` is in `.gitignore` and is never committed.
 
-## 5. Run the app
+## 5. Run the multi-tenant migration (required, once)
+Creates the `users` table, adds link ownership, and bootstraps your
+admin account from the `.env` values above. Safe to re-run.
+```
+python3 -m scripts.migrate_multi_tenant
+```
+If you had links from before multi-tenant support existed, they get
+assigned to the admin account automatically.
+
+## 6. Run the app
 ```
 uvicorn app.main:app --reload
 ```
-- Dashboard: http://127.0.0.1:8000/dashboard
+- Dashboard (admin login): http://127.0.0.1:8000/dashboard
+- Customer signup: http://127.0.0.1:8000/signup
 - API docs (Swagger): http://127.0.0.1:8000/docs
 - API docs (ReDoc): http://127.0.0.1:8000/redoc
 

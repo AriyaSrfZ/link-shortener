@@ -12,10 +12,13 @@ Built by Ariya Sarrafzadeh ([github.com/AriyaSrfZ](https://github.com/AriyaSrfZ)
   standard campaign-tracking parameters
 - Every click logged: timestamp, IP, country (offline lookup, no API key
   needed), browser, OS, device type, referrer
-- Dashboard with aggregate analytics: clicks over time, top referrers,
-  device breakdown, top countries — both site-wide and per-link
-- JSON API (with Swagger docs) alongside the HTML dashboard
-- Session-based admin login
+- **Multi-tenant**: customers self-register and only ever see their own
+  links; an admin account sees and manages everything, plus a Customers
+  page to disable or delete accounts
+- Dashboard with live Chart.js graphs (line, doughnut, bar) — site-wide
+  for admins, scoped to just their own links for customers
+- JSON API (with Swagger docs) alongside the HTML dashboard, with
+  X-API-Key auth for external app integration
 - SQLite by default, swappable to PostgreSQL via one config line
 
 ## Quick start
@@ -50,6 +53,9 @@ Deploying to a VPS with a domain: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 | v0.2 | Auth, CRUD layer, dashboard UI, JSON API |
 | v0.3 | Redirect endpoint with click logging, pytest suite |
 | v0.4 | Aggregate analytics dashboard |
+| v0.11 | X-API-Key auth for app integration, click/stats API endpoints, full OpenAPI docs |
+| v0.12 | Multi-tenant: database-backed users, customer signup, ownership enforcement, admin user management |
+| v0.13 | Redesigned dashboard with real Chart.js graphs |
 
 ## License
 Personal/internal use project — add a license here if you plan to share

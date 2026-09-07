@@ -11,13 +11,16 @@ once the server is running.
 Every `/api/...` route requires one of:
 - **`X-API-Key` header** — set `API_KEY` in `.env`, then send that exact
   value as the header on every request. This is what an external app
-  should use. Generate a key with:
+  should use. Treated as full admin access - sees every link across
+  every customer. Generate a key with:
   ```
   python3 -c "import secrets; print(secrets.token_urlsafe(32))"
   ```
-- **Dashboard session cookie** — only relevant if you're calling the API
-  from a browser that's already logged into `/dashboard`. Not usable
-  from server-to-server code.
+- **Dashboard session cookie** — for a customer or admin browser session.
+  A customer session only ever sees/modifies links they own; requests
+  for another customer's link ID return `404`, not `403` (existence
+  isn't confirmed either way). An admin session sees everything, same
+  as an API key.
 
 If `API_KEY` is left blank in `.env`, API key auth is disabled entirely
 and only the session cookie works — meaning the API becomes unusable
