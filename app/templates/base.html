@@ -13,6 +13,7 @@
         <nav>
             <a href="/dashboard">My Links</a>
             <a href="/dashboard/new">New Link</a>
+            <a href="/dashboard/qrcodes">QR Codes</a>
             {% if request.session.get("role") == "admin" %}
             <a href="/dashboard/admin/users">Customers</a>
             {% endif %}

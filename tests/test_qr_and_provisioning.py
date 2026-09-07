@@ -162,6 +162,17 @@ def test_vcard_qr(client):
     assert r2.status_code == 200
 
 
+def test_dashboard_qrcodes_page_not_shadowed_by_link_detail_route(client):
+    """Regression test: /dashboard/qrcodes must not be captured by the
+    /dashboard/{link_id} route. It was, until qrcodes routes were moved
+    ahead of it in registration order."""
+    link_id = make_link(client, "routeordertest1")
+    client.post("/login", data={"username": "admin_qr", "password": "adminpass"})
+    r = client.get("/dashboard/qrcodes")
+    assert r.status_code == 200
+    assert "Generate a new QR code" in r.text
+
+
 # ---- Account provisioning ------------------------------------------------
 
 def test_provision_user_via_api_key_generates_password(client):

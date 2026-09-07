@@ -144,3 +144,8 @@ code.wrap { display: block; padding: 10px; white-space: pre-wrap; word-break: br
 .analytics-grid .card { margin-bottom: 0; }
 .chart-box { position: relative; height: 220px; }
 .chart-box.tall { height: 260px; }
+
+.qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.qr-card { text-align: center; }
+.qr-card img { border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px; }
+.qr-fields { margin-top: 4px; }

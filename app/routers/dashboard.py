@@ -13,7 +13,6 @@ from app.database import get_db
 from app.config import settings
 from app import crud, analytics
 from app.routers.auth import require_login_ui, require_admin_ui, CurrentUser
-
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 templates = Jinja2Templates(directory="app/templates")
 
@@ -111,6 +110,86 @@ def new_link_submit(
     return RedirectResponse(f"/dashboard/{link.id}", status_code=303)
 
 
+# ---- QR codes -----------------------------------------------------------
+
+@router.get("/qrcodes")
+def qrcodes_list(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(require_login_ui),
+):
+    codes = crud.list_qr_codes_for_user(db, current_user)
+    my_links = crud.list_links_for_user(db, current_user)
+    return templates.TemplateResponse(
+        "qrcodes.html",
+        {"request": request, "codes": codes, "my_links": my_links, "current_user": current_user},
+    )
+
+
+@router.post("/qrcodes/new")
+def qrcodes_create(
+    request: Request,
+    qr_type: str = Form(...),
+    link_id: str = Form(""),
+    text: str = Form(""),
+    wifi_ssid: str = Form(""),
+    wifi_password: str = Form(""),
+    wifi_security: str = Form("WPA"),
+    wifi_hidden: str = Form(""),
+    vcard_name: str = Form(""),
+    vcard_phone: str = Form(""),
+    vcard_email: str = Form(""),
+    vcard_org: str = Form(""),
+    fg_color: str = Form("#000000"),
+    bg_color: str = Form("#ffffff"),
+    db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(require_login_ui),
+):
+    import json as _json
+
+    try:
+        if qr_type == "link":
+            if not link_id:
+                raise ValueError("Pick a link.")
+            link = crud.get_link_for_user(db, int(link_id), current_user)
+            if not link:
+                raise ValueError("That link isn't yours.")
+            payload_json, resolved_link_id = None, int(link_id)
+        elif qr_type == "text":
+            if not text:
+                raise ValueError("Text is required.")
+            payload_json, resolved_link_id = _json.dumps({"text": text}), None
+        elif qr_type == "wifi":
+            if not wifi_ssid:
+                raise ValueError("Network name is required.")
+            payload_json, resolved_link_id = _json.dumps({
+                "ssid": wifi_ssid, "password": wifi_password,
+                "security": wifi_security, "hidden": bool(wifi_hidden),
+            }), None
+        elif qr_type == "vcard":
+            if not vcard_name:
+                raise ValueError("Contact name is required.")
+            payload_json, resolved_link_id = _json.dumps({
+                "name": vcard_name, "phone": vcard_phone, "email": vcard_email, "org": vcard_org,
+            }), None
+        else:
+            raise ValueError("Unknown QR type.")
+
+        crud.create_qr_code(
+            db, owner_id=current_user.id, qr_type=qr_type, link_id=resolved_link_id,
+            payload=payload_json, fg_color=fg_color or "#000000", bg_color=bg_color or "#ffffff",
+        )
+    except ValueError as exc:
+        codes = crud.list_qr_codes_for_user(db, current_user)
+        my_links = crud.list_links_for_user(db, current_user)
+        return templates.TemplateResponse(
+            "qrcodes.html",
+            {"request": request, "codes": codes, "my_links": my_links, "current_user": current_user, "error": str(exc)},
+            status_code=400,
+        )
+    return RedirectResponse("/dashboard/qrcodes", status_code=303)
+
+
 @router.get("/{link_id}")
 def link_detail(
     link_id: int,
@@ -190,3 +269,13 @@ def delete_user_route(
 ):
     crud.delete_user(db, user_id)
     return RedirectResponse("/dashboard/admin/users", status_code=303)
+
+
+@router.post("/qrcodes/{qr_id}/delete")
+def qrcodes_delete(
+    qr_id: int,
+    db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(require_login_ui),
+):
+    crud.delete_qr_code_for_user(db, qr_id, current_user)
+    return RedirectResponse("/dashboard/qrcodes", status_code=303)
