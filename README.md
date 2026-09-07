@@ -17,8 +17,13 @@ Built by Ariya Sarrafzadeh ([github.com/AriyaSrfZ](https://github.com/AriyaSrfZ)
   page to disable or delete accounts
 - Dashboard with live Chart.js graphs (line, doughnut, bar) — site-wide
   for admins, scoped to just their own links for customers
-- JSON API (with Swagger docs) alongside the HTML dashboard, with
-  X-API-Key auth for external app integration
+- X-API-Key auth for external app integration, plus admin/API-key account
+  provisioning (`POST /api/users`) for panels/apps that need to create
+  accounts automatically
+- QR codes: for any short link (dynamic — edit the link, the code updates,
+  no reprint) or standalone (text, WiFi, contact card), PNG + SVG
+- Click-free link preview page (`/preview/{code}`) — see the destination
+  without triggering a tracked visit
 - SQLite by default, swappable to PostgreSQL via one config line
 
 ## Quick start
@@ -56,6 +61,11 @@ Deploying to a VPS with a domain: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 | v0.11 | X-API-Key auth for app integration, click/stats API endpoints, full OpenAPI docs |
 | v0.12 | Multi-tenant: database-backed users, customer signup, ownership enforcement, admin user management |
 | v0.13 | Redesigned dashboard with real Chart.js graphs |
+| v0.15 | QR codes (link/text/wifi/vcard), click-free link preview, API account provisioning |
+
+See [docs/ARCHITECTURE_USER_MANAGEMENT.md](docs/ARCHITECTURE_USER_MANAGEMENT.md)
+for the plan to extract user accounts into a shared service once a
+second project needs them.
 
 ## License
 Personal/internal use project — add a license here if you plan to share

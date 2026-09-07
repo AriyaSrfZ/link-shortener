@@ -198,7 +198,97 @@ curl https://aria-haross.ir/api/stats -H "X-API-Key: YOUR_KEY"
 
 ---
 
-## Integration examples
+## POST /api/users
+Admin/API-key only — a customer session gets `403`. Creates an account
+directly, bypassing `/signup`. Use this when your own app/panel needs to
+provision a link-shortener account for one of its users automatically.
+
+**Body:** `username` (required), `email` (optional), `password` (optional
+— omit to auto-generate one), `role` (optional, `customer` or `admin`, defaults to `customer`).
+
+```bash
+curl -X POST https://aria-haross.ir/api/users \
+  -H "X-API-Key: YOUR_KEY" -H "Content-Type: application/json" \
+  -d '{"username": "panel_user_42"}'
+```
+
+**Response `200`:**
+```json
+{
+  "id": 7, "username": "panel_user_42", "email": null, "role": "customer",
+  "is_active": true, "created_at": "2026-09-07T10:46:22Z",
+  "generated_password": "eW8gr3s-bJQA9kNE"
+}
+```
+`generated_password` only appears once, right here — it's hashed
+immediately and unrecoverable after this response. Capture it now
+(forward it to the actual user via your own channel, or immediately
+have them reset it).
+
+---
+
+## GET /preview/{code}
+Public, no auth. Shows the destination a short code leads to **without**
+logging a click or redirecting — safe for "check before you click." Returns
+an HTML page, not JSON (there's no API equivalent; this is meant for humans).
+
+---
+
+## QR Codes
+Same ownership model as links: a customer session only ever sees their
+own QR codes; admin/API-key sees everything.
+
+### POST /api/qrcodes
+**`type: "link"`** — encodes an existing link's short URL. This is a
+"dynamic" QR: editing that link's destination changes what scanning it
+does, no reprint needed. Requires `link_id`.
+
+**`type: "text"` / `"wifi"` / `"vcard"`** — standalone, not tied to a
+trackable link, so **API-key requests can't create these** (`400` —
+there's no user for a standalone code to belong to). Use a customer or
+admin session instead.
+
+| Type | Required fields |
+|---|---|
+| `link` | `link_id` |
+| `text` | `text` |
+| `wifi` | `wifi_ssid` (optional: `wifi_password`, `wifi_security`: WPA/WEP/nopass, `wifi_hidden`) |
+| `vcard` | `vcard_name` (optional: `vcard_phone`, `vcard_email`, `vcard_org`) |
+
+Optional on all types: `fg_color`, `bg_color` (hex, PNG only — SVG is always black-on-transparent).
+
+```bash
+curl -X POST https://aria-haross.ir/api/qrcodes \
+  -H "X-API-Key: YOUR_KEY" -H "Content-Type: application/json" \
+  -d '{"type": "link", "link_id": 1}'
+```
+
+**Response `200`:**
+```json
+{
+  "id": 3, "type": "link", "link_id": 1,
+  "fg_color": "#000000", "bg_color": "#ffffff",
+  "created_at": "2026-09-07T10:46:23Z",
+  "image_url": "https://aria-haross.ir/api/qrcodes/3/image",
+  "svg_url": "https://aria-haross.ir/api/qrcodes/3/svg"
+}
+```
+
+### GET /api/qrcodes/{id}/image and /svg
+Streams the actual PNG or SVG. These two endpoints **also** accept the
+key as `?api_key=...` in addition to the header, since an `<img src="...">`
+tag can't set custom headers:
+```html
+<img src="https://aria-haross.ir/api/qrcodes/3/image?api_key=YOUR_KEY">
+```
+This is less secure than the header (the key ends up in browser history
+and any Referer header sent onward) — use the header wherever you can;
+this fallback exists specifically for direct embedding.
+
+### GET /api/qrcodes, GET /api/qrcodes/{id}, DELETE /api/qrcodes/{id}
+Same shape and behavior as the equivalent link endpoints above.
+
+
 
 **Python (requests):**
 ```python
