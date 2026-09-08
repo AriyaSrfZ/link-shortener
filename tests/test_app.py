@@ -168,3 +168,37 @@ def test_inactive_or_unknown_code_redirects_to_dashboard(logged_in_client):
 def test_json_api_requires_auth(client):
     r = client.get("/api/links")
     assert r.status_code == 401
+
+
+def test_login_rate_limited_after_too_many_attempts():
+    """Isolated app instance with a very low limit, so it doesn't
+    interfere with the shared high-limit fixture used everywhere else
+    in this file."""
+    import os as _os
+    _os.environ["RATE_LIMIT_LOGIN"] = "3/minute"
+    import importlib
+    import app.config as config_module
+    importlib.reload(config_module)
+    import app.routers.auth as auth_module
+    importlib.reload(auth_module)
+
+    from fastapi import FastAPI
+    from slowapi import _rate_limit_exceeded_handler
+    from slowapi.errors import RateLimitExceeded
+    from fastapi.testclient import TestClient
+    from starlette.middleware.sessions import SessionMiddleware
+
+    isolated_app = FastAPI()
+    isolated_app.state.limiter = auth_module.limiter
+    isolated_app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    isolated_app.add_middleware(SessionMiddleware, secret_key="test")
+    isolated_app.include_router(auth_module.router)
+    isolated_app.dependency_overrides[get_db] = override_get_db
+
+    with TestClient(isolated_app) as ic:
+        statuses = [ic.post("/login", data={"username": "nobody", "password": "wrong"}).status_code for _ in range(5)]
+    assert 429 in statuses
+
+    _os.environ["RATE_LIMIT_LOGIN"] = "1000/minute"
+    importlib.reload(config_module)
+    importlib.reload(auth_module)

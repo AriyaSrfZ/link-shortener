@@ -20,6 +20,8 @@ class Settings:
     admin_password: str = os.getenv("ADMIN_PASSWORD", "admin")
     shortcode_length: int = int(os.getenv("SHORTCODE_LENGTH", "6"))
     api_key: str = os.getenv("API_KEY", "")
+    rate_limit_login: str = os.getenv("RATE_LIMIT_LOGIN", "10/minute")
+    rate_limit_register: str = os.getenv("RATE_LIMIT_REGISTER", "5/minute")
 
 
 settings = Settings()

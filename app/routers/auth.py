@@ -30,6 +30,8 @@ from fastapi import APIRouter, Depends, Request, HTTPException, Form, Header
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from passlib.context import CryptContext
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -39,6 +41,7 @@ from app.models import User
 router = APIRouter(tags=["auth"])
 templates = Jinja2Templates(directory="app/templates")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+limiter = Limiter(key_func=get_remote_address)
 
 
 @dataclass
@@ -125,6 +128,7 @@ def login_page(request: Request):
 
 
 @router.post("/login")
+@limiter.limit(settings.rate_limit_login)
 def login_submit(
     request: Request,
     username: str = Form(...),
@@ -152,6 +156,7 @@ def signup_page(request: Request):
 
 
 @router.post("/signup")
+@limiter.limit(settings.rate_limit_register)
 def signup_submit(
     request: Request,
     username: str = Form(...),
