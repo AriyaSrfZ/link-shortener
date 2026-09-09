@@ -14,3 +14,7 @@ data/*.sqlite3
 *.log
 nohup.out
 *.deb
+*.db
+*.db.backup
+*.db.backup.*
+*.tar.gz
