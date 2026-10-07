@@ -21,5 +21,5 @@ templates = Jinja2Templates(directory="app/templates")
 def preview_link(code: str, request: Request, db: Session = Depends(get_db)):
     link = crud.get_link_by_code(db, code)
     return templates.TemplateResponse(
-        "preview.html", {"request": request, "code": code, "link": link}
+        request, "preview.html", {"code": code, "link": link}
     )

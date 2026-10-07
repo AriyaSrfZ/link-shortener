@@ -23,6 +23,7 @@ admin-equivalent), and every route that needs to know "who is asking"
 uses it instead of a bare True/False check.
 """
 
+import secrets
 from dataclasses import dataclass
 from typing import Optional
 
@@ -41,7 +42,19 @@ from app.models import User
 router = APIRouter(tags=["auth"])
 templates = Jinja2Templates(directory="app/templates")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-limiter = Limiter(key_func=get_remote_address)
+
+
+def get_client_ip(request: Request) -> str:
+    cf_ip = request.headers.get("cf-connecting-ip")
+    if cf_ip:
+        return cf_ip.strip()
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return get_remote_address(request)
+
+
+limiter = Limiter(key_func=get_client_ip)
 
 
 @dataclass
@@ -73,7 +86,7 @@ def get_current_user(
 ) -> Optional[CurrentUser]:
     """Returns a CurrentUser if authenticated via either path, else None.
     Does not raise - callers decide what "not authenticated" means for them."""
-    if settings.api_key and x_api_key == settings.api_key:
+    if settings.api_key and x_api_key and secrets.compare_digest(x_api_key, settings.api_key):
         return CurrentUser(id=None, username="api-key", is_admin=True)
 
     user_id = request.session.get("user_id")
@@ -124,7 +137,7 @@ def require_admin_or_api_key(current_user: CurrentUser = Depends(require_login))
 def login_page(request: Request):
     if request.session.get("user_id"):
         return RedirectResponse("/dashboard", status_code=303)
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request, "login.html", {"error": None})
 
 
 @router.post("/login")
@@ -138,8 +151,9 @@ def login_submit(
     user = db.query(User).filter(User.username == username).first()
     if not user or not user.is_active or not verify_password(password, user.password_hash):
         return templates.TemplateResponse(
+            request,
             "login.html",
-            {"request": request, "error": "Invalid username or password."},
+            {"error": "Invalid username or password."},
             status_code=401,
         )
     request.session["user_id"] = user.id
@@ -152,7 +166,7 @@ def login_submit(
 def signup_page(request: Request):
     if request.session.get("user_id"):
         return RedirectResponse("/dashboard", status_code=303)
-    return templates.TemplateResponse("signup.html", {"request": request, "error": None, "form": {}})
+    return templates.TemplateResponse(request, "signup.html", {"error": None, "form": {}})
 
 
 @router.post("/signup")
@@ -179,8 +193,9 @@ def signup_submit(
 
     if error:
         return templates.TemplateResponse(
+            request,
             "signup.html",
-            {"request": request, "error": error, "form": {"username": username, "email": email}},
+            {"error": error, "form": {"username": username, "email": email}},
             status_code=400,
         )
 

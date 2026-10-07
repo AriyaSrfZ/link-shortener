@@ -14,8 +14,9 @@ router = APIRouter(tags=["redirect"])
 
 
 def _client_ip(request: Request) -> str:
-    # Respect X-Forwarded-For when running behind a reverse proxy (nginx, etc.)
-    # in the future deployment; falls back to the direct connection IP locally.
+    cf_ip = request.headers.get("cf-connecting-ip")
+    if cf_ip:
+        return cf_ip.strip()
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()

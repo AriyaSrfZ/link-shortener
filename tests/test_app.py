@@ -202,3 +202,72 @@ def test_login_rate_limited_after_too_many_attempts():
     _os.environ["RATE_LIMIT_LOGIN"] = "1000/minute"
     importlib.reload(config_module)
     importlib.reload(auth_module)
+
+
+def test_create_link_custom_code_invalid_chars(logged_in_client):
+    # Slashes, spaces, emojis, or punctuation should be rejected
+    for bad_code in ["slash/code", "space code", "emoji🚀", "question?mark", "hash#tag"]:
+        r = logged_in_client.post(
+            "/api/links",
+            json={
+                "long_url": "https://example.com",
+                "utm_source": "test",
+                "utm_medium": "test",
+                "utm_campaign": "test",
+                "custom_code": bad_code,
+            },
+        )
+        assert r.status_code in (400, 422), f"Expected rejection for '{bad_code}', got {r.status_code}"
+
+
+def test_link_clicks_pagination(logged_in_client, client):
+    create_resp = logged_in_client.post(
+        "/api/links",
+        json={
+            "long_url": "https://example.com/target",
+            "utm_source": "src",
+            "utm_medium": "med",
+            "utm_campaign": "cmp",
+        },
+    )
+    assert create_resp.status_code == 200
+    link_id = create_resp.json()["id"]
+    short_code = create_resp.json()["short_code"]
+
+    # Simulate 5 clicks via anonymous client
+    for _ in range(5):
+        client.get(f"/r/{short_code}", follow_redirects=False)
+
+    # Query clicks with pagination
+    r_all = logged_in_client.get(f"/api/links/{link_id}/clicks?skip=0&limit=10")
+    assert len(r_all.json()) == 5
+
+    r_page1 = logged_in_client.get(f"/api/links/{link_id}/clicks?skip=0&limit=2")
+    assert len(r_page1.json()) == 2
+
+    r_page2 = logged_in_client.get(f"/api/links/{link_id}/clicks?skip=2&limit=2")
+    assert len(r_page2.json()) == 2
+    assert r_page1.json()[0]["id"] != r_page2.json()[0]["id"]
+
+
+def test_redirect_records_cf_connecting_ip(logged_in_client, client):
+    create_resp = logged_in_client.post(
+        "/api/links",
+        json={
+            "long_url": "https://example.com/target",
+            "utm_source": "src",
+            "utm_medium": "med",
+            "utm_campaign": "cmp",
+        },
+    )
+    link_id = create_resp.json()["id"]
+    short_code = create_resp.json()["short_code"]
+
+    # Click with CF-Connecting-IP header via anonymous client
+    client.get(f"/r/{short_code}", headers={"cf-connecting-ip": "198.51.100.42"}, follow_redirects=False)
+
+    clicks_resp = logged_in_client.get(f"/api/links/{link_id}/clicks?limit=1")
+    clicks = clicks_resp.json()
+    assert len(clicks) >= 1
+    assert clicks[0]["ip_address"] == "198.51.100.42"
+

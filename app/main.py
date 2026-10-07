@@ -24,7 +24,7 @@ Base.metadata.create_all(bind=engine)
 # redoc.standalone.js bundle from app/static/js/ instead of an external CDN -
 # avoids depending on jsdelivr/unpkg reachability, which is not guaranteed
 # from every network.
-app = FastAPI(title="Link Shortener", version="0.11.0", redoc_url=None)
+app = FastAPI(title="Link Shortener", version="0.15.0", redoc_url=None)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

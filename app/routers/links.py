@@ -163,8 +163,7 @@ def api_get_link_clicks(
     link = crud.get_link_for_user(db, link_id, current_user)
     if not link:
         raise HTTPException(status_code=404, detail="Link not found")
-    clicks = sorted(link.clicks, key=lambda c: c.clicked_at, reverse=True)
-    return clicks[skip: skip + limit]
+    return crud.get_link_clicks(db, link.id, skip=skip, limit=limit)
 
 
 @router.get(

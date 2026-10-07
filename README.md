@@ -48,8 +48,8 @@ Deploying to a VPS with a domain: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - **Database:** SQLite (default), PostgreSQL-ready
 - **Geolocation:** `geoip2fast` (offline, bundled database, no API key)
 - **User-agent parsing:** `user-agents`
-- **Tests:** pytest, 12 tests covering auth, link creation, redirects,
-  click logging, and analytics aggregation
+- **Tests:** pytest, 44 tests covering auth, link creation, redirects,
+  click logging, analytics aggregation, multi-tenancy, and QR generation
 
 ## Version history
 | Tag | What it added |

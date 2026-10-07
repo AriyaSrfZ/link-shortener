@@ -16,7 +16,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models import Link, Click, User, QRCode
-from app.utils.shortcode import generate_code, is_reserved
+from app.utils.shortcode import generate_code, is_reserved, is_valid_custom_code
 from app.utils.useragent import parse_user_agent
 from app.utils.geoip import lookup_country
 from app.config import settings
@@ -49,6 +49,10 @@ def create_link(
     custom_code: Optional[str] = None,
 ) -> Link:
     if custom_code:
+        if not is_valid_custom_code(custom_code):
+            raise ValueError(
+                f"Custom code '{custom_code}' is invalid. Only letters, digits, underscores, and hyphens are allowed."
+            )
         if is_reserved(custom_code):
             raise ValueError(f"'{custom_code}' is a reserved word, pick another code.")
         if code_exists(db, custom_code):
@@ -112,6 +116,17 @@ def list_links_for_user(db: Session, current_user, skip: int = 0, limit: int = 1
 
 def count_clicks(db: Session, link_id: int) -> int:
     return db.query(func.count(Click.id)).filter(Click.link_id == link_id).scalar() or 0
+
+
+def get_link_clicks(db: Session, link_id: int, skip: int = 0, limit: int = 100) -> list[Click]:
+    return (
+        db.query(Click)
+        .filter(Click.link_id == link_id)
+        .order_by(Click.clicked_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def deactivate_link(db: Session, link_id: int) -> Optional[Link]:

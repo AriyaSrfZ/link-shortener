@@ -57,6 +57,7 @@ class LinkCreate(BaseModel):
         None,
         min_length=3,
         max_length=64,
+        pattern=r"^[A-Za-z0-9_-]+$",
         description=(
             "Optional. Letters, digits, underscore, and hyphen only. "
             "Leave blank/omit to auto-generate a random 6-character code. "

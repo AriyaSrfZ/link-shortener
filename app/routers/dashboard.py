@@ -39,9 +39,9 @@ def dashboard_home(
     devices = analytics.device_breakdown(db, owner_id=owner_id)
     countries = analytics.top_countries(db, owner_id=owner_id)
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "rows": rows,
             "summary": summary,
             "daily": daily,
@@ -59,7 +59,7 @@ def new_link_form(
     current_user: CurrentUser = Depends(require_login_ui),
 ):
     return templates.TemplateResponse(
-        "create.html", {"request": request, "error": None, "form": {}, "current_user": current_user}
+        request, "create.html", {"error": None, "form": {}, "current_user": current_user}
     )
 
 
@@ -90,9 +90,9 @@ def new_link_submit(
         )
     except ValueError as exc:
         return templates.TemplateResponse(
+            request,
             "create.html",
             {
-                "request": request,
                 "error": str(exc),
                 "current_user": current_user,
                 "form": {
@@ -121,8 +121,9 @@ def qrcodes_list(
     codes = crud.list_qr_codes_for_user(db, current_user)
     my_links = crud.list_links_for_user(db, current_user)
     return templates.TemplateResponse(
+        request,
         "qrcodes.html",
-        {"request": request, "codes": codes, "my_links": my_links, "current_user": current_user},
+        {"codes": codes, "my_links": my_links, "current_user": current_user},
     )
 
 
@@ -183,8 +184,9 @@ def qrcodes_create(
         codes = crud.list_qr_codes_for_user(db, current_user)
         my_links = crud.list_links_for_user(db, current_user)
         return templates.TemplateResponse(
+            request,
             "qrcodes.html",
-            {"request": request, "codes": codes, "my_links": my_links, "current_user": current_user, "error": str(exc)},
+            {"codes": codes, "my_links": my_links, "current_user": current_user, "error": str(exc)},
             status_code=400,
         )
     return RedirectResponse("/dashboard/qrcodes", status_code=303)
@@ -200,15 +202,15 @@ def link_detail(
     link = crud.get_link_for_user(db, link_id, current_user)
     if not link:
         return RedirectResponse("/dashboard", status_code=303)
-    clicks = sorted(link.clicks, key=lambda c: c.clicked_at, reverse=True)
+    clicks = crud.get_link_clicks(db, link.id, skip=0, limit=100)
     daily = analytics.clicks_per_day(db, link_id=link_id, days=14)
     referrers = analytics.top_referrers(db, link_id=link_id)
     devices = analytics.device_breakdown(db, link_id=link_id)
     countries = analytics.top_countries(db, link_id=link_id)
     return templates.TemplateResponse(
+        request,
         "link_detail.html",
         {
-            "request": request,
             "link": link,
             "short_url": f"{settings.base_url}/r/{link.short_code}",
             "clicks": clicks,
@@ -245,7 +247,7 @@ def users_list(
         for u in customers
     ]
     return templates.TemplateResponse(
-        "users.html", {"request": request, "rows": rows, "current_user": current_user}
+        request, "users.html", {"rows": rows, "current_user": current_user}
     )
 
 
