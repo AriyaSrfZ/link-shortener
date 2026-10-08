@@ -42,6 +42,7 @@ from app.models import User
 router = APIRouter(tags=["auth"])
 templates = Jinja2Templates(directory="app/templates")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+DUMMY_BCRYPT_HASH = "$2b$12$e8kGV8iWnO0e0M1R4x9qMeN1X4nU3zL9b2iO1o6hP8e7wQ5vJ7e6."
 
 
 def get_client_ip(request: Request) -> str:
@@ -149,13 +150,19 @@ def login_submit(
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.username == username).first()
-    if not user or not user.is_active or not verify_password(password, user.password_hash):
+    # Constant-time password check: prevents timing attacks / username enumeration
+    target_hash = user.password_hash if user else DUMMY_BCRYPT_HASH
+    is_valid_password = verify_password(password, target_hash)
+
+    if not user or not user.is_active or not is_valid_password:
         return templates.TemplateResponse(
             request,
             "login.html",
             {"error": "Invalid username or password."},
             status_code=401,
         )
+    # Clear prior session data before establishing new session (Session Fixation protection)
+    request.session.clear()
     request.session["user_id"] = user.id
     request.session["username"] = user.username
     request.session["role"] = user.role

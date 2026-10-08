@@ -18,3 +18,4 @@ nohup.out
 *.db.backup
 *.db.backup.*
 *.tar.gz
+keys/

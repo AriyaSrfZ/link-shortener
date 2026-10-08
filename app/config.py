@@ -22,6 +22,9 @@ class Settings:
     api_key: str = os.getenv("API_KEY", "")
     rate_limit_login: str = os.getenv("RATE_LIMIT_LOGIN", "10/minute")
     rate_limit_register: str = os.getenv("RATE_LIMIT_REGISTER", "5/minute")
+    session_https_only: bool = os.getenv("SESSION_HTTPS_ONLY", "false").lower() == "true"
+    session_same_site: str = os.getenv("SESSION_SAME_SITE", "lax")
+    session_max_age: int = int(os.getenv("SESSION_MAX_AGE", str(14 * 86400)))
 
 
 settings = Settings()

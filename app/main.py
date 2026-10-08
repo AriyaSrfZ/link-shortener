@@ -11,10 +11,14 @@ from starlette.middleware.sessions import SessionMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from pathlib import Path
+
 from app.config import settings
 from app.database import Base, engine
 from app.routers import auth, links, dashboard, redirect, qrcodes, preview, users
 from app.routers.auth import NotLoggedInUI, limiter
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 # Creates data/app.db and all tables on first run if they don't exist yet.
 Base.metadata.create_all(bind=engine)
@@ -28,8 +32,14 @@ app = FastAPI(title="Link Shortener", version="0.15.0", redoc_url=None)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.secret_key,
+    same_site=settings.session_same_site,
+    https_only=settings.session_https_only,
+    max_age=settings.session_max_age,
+)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/redoc", include_in_schema=False)
