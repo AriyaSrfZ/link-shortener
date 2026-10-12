@@ -68,8 +68,7 @@ for the plan to extract user accounts into a shared service once a
 second project needs them.
 
 ## License
-Personal/internal use project — add a license here if you plan to share
-or open-source it.
+Personal/internal use project.
 
 ## Author
 Ariya Sarrafzadeh — [github.com/AriyaSrfZ](https://github.com/AriyaSrfZ)
