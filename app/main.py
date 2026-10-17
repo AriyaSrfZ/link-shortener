@@ -15,7 +15,7 @@ from pathlib import Path
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import auth, links, dashboard, redirect, qrcodes, preview, users
+from app.routers import auth, links, dashboard, redirect, preview, users
 from app.routers.auth import NotLoggedInUI, limiter
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -69,7 +69,6 @@ def health():
 app.include_router(auth.router)
 app.include_router(links.router)
 app.include_router(links.stats_router)
-app.include_router(qrcodes.router)
 app.include_router(preview.router)
 app.include_router(users.router)
 app.include_router(dashboard.router)

@@ -106,30 +106,3 @@ class Click(Base):
 
     link = relationship("Link", back_populates="clicks")
 
-
-class QRCode(Base):
-    """A generated QR code. Either tied to one of this owner's Links
-    (type='link' - encodes that link's short URL, so it's a "dynamic" QR:
-    editing the link's destination changes what scanning it does, with no
-    reprint needed) or standalone (type='text'/'wifi'/'vcard' - encodes
-    whatever payload was given directly, not tracked/clickable)."""
-    __tablename__ = "qr_codes"
-
-    id = Column(Integer, primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    type = Column(String(20), nullable=False)  # "link", "text", "wifi", "vcard"
-    link_id = Column(Integer, ForeignKey("links.id"), nullable=True)
-
-    # JSON-encoded, shape depends on `type`:
-    #   text:  {"text": "..."}
-    #   wifi:  {"ssid": "...", "password": "...", "security": "WPA|WEP|nopass", "hidden": false}
-    #   vcard: {"name": "...", "phone": "...", "email": "...", "org": "..."}
-    #   link:  null (content comes from the linked Link's short URL)
-    payload = Column(Text, nullable=True)
-
-    fg_color = Column(String(9), default="#000000", nullable=False)
-    bg_color = Column(String(9), default="#ffffff", nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-
-    owner = relationship("User")
-    link = relationship("Link")
